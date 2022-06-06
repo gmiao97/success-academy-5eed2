@@ -6,14 +6,14 @@ const randomstring = require("randomstring");
 
 const googleCredentials = require("./credentials.json");
 const FREE_LESSON_CALENDAR_ID =
-"a1v2bktm2g9rgariippf2ivhms@group.calendar.google.com";
+  "a1v2bktm2g9rgariippf2ivhms@group.calendar.google.com";
 // const PRESCHOOL_LESSON_CALENDAR_ID =
 // "fs4hea6n2s3s7deh2ujc710lfk@group.calendar.google.com";
 // const INDIVIDUAL_LESSON_CALENDAR_ID =
 // "mq9nrjs0mov9adb6rgfdssigsk@group.calendar.google.com";
 
 /** Adds a new event
- * @param {Object} event - The parameters for event creation.
+ * @param {Object} event The parameters for event creation.
  * @return {Promise} A promise indicating result of calling Google Calendar
  * API
  */
@@ -35,7 +35,38 @@ function addEvent(event) {
 }
 
 /**
- * @param {Object} event - The parameters for event creation.
+ * Gets events with start time between {@param timeMin} and {@param timeMax}
+ * @param {string} calendarId
+ * @param {string} timeZone Time zone used in the response.
+ * @param {string} timeMin Lower bound (exclusive) for an event's end time.
+ * @param {string} timeMax Upper bound (exclusive) for an event's start time.
+ * @return {Promise}
+ */
+function getEvents(calendarId, timeZone, timeMin, timeMax) {
+  const params = {
+    auth: buildAuth(),
+    calendarId: calendarId,
+    orderBy: "startTime",
+    singleEvents: true,
+    timeZone: timeZone,
+  };
+  timeMin && (params.timeMin = timeMin);
+  timeMax && (params.timeMax = timeMax);
+
+  return new Promise((resolve, reject) => {
+    calendar.events.list(params,
+        (err, res) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(res.data.items);
+          }
+        });
+  });
+}
+
+/**
+ * @param {Object} event The parameters for event creation.
  * @return {Object} An object representing the event resource
  */
 function buildResource(event) {
@@ -60,6 +91,7 @@ function buildResource(event) {
     createRequest: {requestId: randomstring.generate(10)},
   },
   event.recurrence && (resource.recurrence = event.recurrence);
+
   return resource;
 }
 
@@ -96,8 +128,27 @@ exports.addEventToFreeLessonCalendar = functions
         response.status(200).send(data);
         return;
       }).catch((err) => {
-        console.error("Error adding event: " + err.message);
+        console.error(err.stack);
         response.status(500).send(err.message);
         return;
       });
+    });
+
+exports.listEventsFromFreeLessonCalendar = functions
+    .region("us-west2")
+    .https
+    .onRequest((request, response) => {
+      getEvents(
+          FREE_LESSON_CALENDAR_ID,
+          request.body.timeZone,
+          request.body.timeMin,
+          request.body.timeMax)
+          .then((data) => {
+            response.status(200).send(data);
+            return;
+          }).catch((err) => {
+            console.error(err.stack);
+            response.status(500).send(err.message);
+            return;
+          });
     });
