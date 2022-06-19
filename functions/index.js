@@ -110,6 +110,7 @@ function buildAuth() {
   return oAuth2Client;
 }
 
+// TODO: Update to be callable function.
 exports.addEventToFreeLessonCalendar = functions
     .region("us-west2")
     .https
@@ -134,21 +135,20 @@ exports.addEventToFreeLessonCalendar = functions
       });
     });
 
-exports.listEventsFromFreeLessonCalendar = functions
+exports.listAllEventsFromFreeLessonCalendar = functions
     .region("us-west2")
     .https
-    .onRequest((request, response) => {
-      getEvents(
+    .onCall((data, context) => {
+      return getEvents(
           FREE_LESSON_CALENDAR_ID,
-          request.body.timeZone,
-          request.body.timeMin,
-          request.body.timeMax)
-          .then((data) => {
-            response.status(200).send(data);
-            return;
-          }).catch((err) => {
-            console.error(err.stack);
-            response.status(500).send(err.message);
-            return;
+          data.timeZone,
+          data.timeMin,
+          data.timeMax)
+          .then((result) => {
+            return result;
+          })
+          .catch((err) => {
+            console.error(err);
+            throw new functions.https.HttpsError("internal", err);
           });
     });
