@@ -7,10 +7,10 @@ const randomstring = require("randomstring");
 const googleCredentials = require("./credentials.json");
 const FREE_LESSON_CALENDAR_ID =
   "a1v2bktm2g9rgariippf2ivhms@group.calendar.google.com";
-// const PRESCHOOL_LESSON_CALENDAR_ID =
-// "fs4hea6n2s3s7deh2ujc710lfk@group.calendar.google.com";
-// const INDIVIDUAL_LESSON_CALENDAR_ID =
-// "mq9nrjs0mov9adb6rgfdssigsk@group.calendar.google.com";
+const PRESCHOOL_LESSON_CALENDAR_ID =
+"fs4hea6n2s3s7deh2ujc710lfk@group.calendar.google.com";
+const PRIVATE_LESSON_CALENDAR_ID =
+"mq9nrjs0mov9adb6rgfdssigsk@group.calendar.google.com";
 
 /** Adds a new event
  * @param {Object} event The parameters for event creation.
@@ -141,6 +141,42 @@ exports.listAllEventsFromFreeLessonCalendar = functions
     .onCall((data, context) => {
       return getEvents(
           FREE_LESSON_CALENDAR_ID,
+          data.timeZone,
+          data.timeMin,
+          data.timeMax)
+          .then((result) => {
+            return result;
+          })
+          .catch((err) => {
+            console.error(err);
+            throw new functions.https.HttpsError("internal", err);
+          });
+    });
+
+exports.listAllEventsFromPreschoolLessonCalendar = functions
+    .region("us-west2")
+    .https
+    .onCall((data, context) => {
+      return getEvents(
+          PRESCHOOL_LESSON_CALENDAR_ID,
+          data.timeZone,
+          data.timeMin,
+          data.timeMax)
+          .then((result) => {
+            return result;
+          })
+          .catch((err) => {
+            console.error(err);
+            throw new functions.https.HttpsError("internal", err);
+          });
+    });
+
+exports.listAllEventsFromPrivateLessonCalendar = functions
+    .region("us-west2")
+    .https
+    .onCall((data, context) => {
+      return getEvents(
+          PRIVATE_LESSON_CALENDAR_ID,
           data.timeZone,
           data.timeMin,
           data.timeMax)
