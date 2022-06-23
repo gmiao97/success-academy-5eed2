@@ -34,6 +34,29 @@ function addEvent(event) {
   });
 }
 
+/** Updates an event
+ * @param {Object} event The parameters for event creation.
+ * @return {Promise} A promise indicating result of calling Google Calendar
+ * API
+ */
+function updateEvent(event) {
+  return new Promise((resolve, reject) => {
+    calendar.events.update({
+      auth: buildAuth(),
+      calendarId: event.calendarId,
+      eventId: event.eventId,
+      conferenceDataVersion: 1,
+      requestBody: buildResource(event),
+    }, (err, res) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(res.data);
+      }
+    });
+  });
+}
+
 /**
  * Gets events with start time between {@param timeMin} and {@param timeMax}
  * @param {string} calendarId
@@ -192,6 +215,80 @@ exports.addEventToPrivateLessonCalendar = functions
       };
 
       return addEvent(eventData)
+          .then((data) => data)
+          .catch((err) => {
+            console.error(err);
+            throw new functions.https.HttpsError("internal", err);
+          });
+    });
+
+exports.updateEventInFreeLessonCalendar = functions
+    .region("us-west2")
+    .https
+    .onCall((data, context) => {
+      const eventData = {
+        calendarId: FREE_LESSON_CALENDAR_ID,
+        eventId: data.eventId,
+        eventName: data.eventName,
+        description: data.description,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        timeZone: data.timeZone,
+        recurrence: data.recurrence,
+      };
+
+      return updateEvent(eventData)
+          .then((data) => data)
+          .catch((err) => {
+            console.error(err);
+            throw new functions.https.HttpsError("internal", err);
+          });
+    });
+
+exports.updateEventInPreschoolLessonCalendar = functions
+    .region("us-west2")
+    .https
+    .onCall((data, context) => {
+      const eventData = {
+        calendarId: PRESCHOOL_LESSON_CALENDAR_ID,
+        eventId: data.eventId,
+        eventName: data.eventName,
+        description: data.description,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        timeZone: data.timeZone,
+        recurrence: data.recurrence,
+        teacherId: data.teacherId,
+        studentIdList: data.studentIdList,
+      };
+
+      return updateEvent(eventData)
+          .then((data) => data)
+          .catch((err) => {
+            console.error(err);
+            throw new functions.https.HttpsError("internal", err);
+          });
+    });
+
+exports.updateEventInPrivateLessonCalendar = functions
+    .region("us-west2")
+    .https
+    .onCall((data, context) => {
+      const eventData = {
+        calendarId: PRIVATE_LESSON_CALENDAR_ID,
+        eventId: data.eventId,
+        eventName: data.eventName,
+        description: data.description,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        timeZone: data.timeZone,
+        recurrence: data.recurrence,
+        teacherId: data.teacherId,
+        studentIdList: data.studentIdList,
+        numPoints: data.numPoints,
+      };
+
+      return updateEvent(eventData)
           .then((data) => data)
           .catch((err) => {
             console.error(err);
