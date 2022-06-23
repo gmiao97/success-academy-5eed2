@@ -73,14 +73,12 @@ function buildResource(event) {
   const resource = {};
 
   if (event.startTime) {
-    resource.start = {...resource.start, dateTime: event.startTime};
-    event.timeZone && (resource.start =
-      {...resource.start, timeZone: event.timeZone});
+    resource.start = {dateTime: event.startTime};
+    event.timeZone && (resource.start.timeZone = event.timeZone);
   }
   if (event.endTime) {
-    resource.end = {...resource.end, dateTime: event.endTime};
-    event.timeZone && (resource.end =
-      {...resource.end, timeZone: event.timeZone});
+    resource.end = {dateTime: event.endTime};
+    event.timeZone && (resource.end.timeZone = event.timeZone);
   }
 
   event.eventName && (resource.summary = event.eventName);
@@ -91,6 +89,26 @@ function buildResource(event) {
     createRequest: {requestId: randomstring.generate(10)},
   },
   event.recurrence && (resource.recurrence = event.recurrence);
+
+  if (event.teacherId) {
+    resource.extendedProperties = {...resource.extendedProperties};
+    resource.extendedProperties.shared = {...resource.extendedProperties.shared,
+      [event.teacherId]: "teacher"};
+  }
+  if (event.studentIdList) {
+    resource.extendedProperties = {...resource.extendedProperties};
+    const studentIdExtendedProperties = {};
+    for (const studentId of event.studentIdList) {
+      studentIdExtendedProperties[studentId] = "student";
+    }
+    resource.extendedProperties.shared = {...resource.extendedProperties.shared,
+      ...studentIdExtendedProperties};
+  }
+  if (event.numPoints) {
+    resource.extendedProperties = {...resource.extendedProperties};
+    resource.extendedProperties.shared = {...resource.extendedProperties.shared,
+      numPoints: event.numPoints};
+  }
 
   return resource;
 }
@@ -122,6 +140,55 @@ exports.addEventToFreeLessonCalendar = functions
         endTime: data.endTime,
         timeZone: data.timeZone,
         recurrence: data.recurrence,
+      };
+
+      return addEvent(eventData)
+          .then((data) => data)
+          .catch((err) => {
+            console.error(err);
+            throw new functions.https.HttpsError("internal", err);
+          });
+    });
+
+exports.addEventToPreschoolLessonCalendar = functions
+    .region("us-west2")
+    .https
+    .onCall((data, context) => {
+      const eventData = {
+        calendarId: PRESCHOOL_LESSON_CALENDAR_ID,
+        eventName: data.eventName,
+        description: data.description,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        timeZone: data.timeZone,
+        recurrence: data.recurrence,
+        teacherId: data.teacherId,
+        studentIdList: data.studentIdList,
+      };
+
+      return addEvent(eventData)
+          .then((data) => data)
+          .catch((err) => {
+            console.error(err);
+            throw new functions.https.HttpsError("internal", err);
+          });
+    });
+
+exports.addEventToPrivateLessonCalendar = functions
+    .region("us-west2")
+    .https
+    .onCall((data, context) => {
+      const eventData = {
+        calendarId: PRIVATE_LESSON_CALENDAR_ID,
+        eventName: data.eventName,
+        description: data.description,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        timeZone: data.timeZone,
+        recurrence: data.recurrence,
+        teacherId: data.teacherId,
+        studentIdList: data.studentIdList,
+        numPoints: data.numPoints,
       };
 
       return addEvent(eventData)
