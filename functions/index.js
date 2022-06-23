@@ -23,7 +23,7 @@ function addEvent(event) {
       auth: buildAuth(),
       calendarId: event.calendarId,
       conferenceDataVersion: 1,
-      resource: buildResource(event),
+      requestBody: buildResource(event),
     }, (err, res) => {
       if (err) {
         reject(err);
@@ -110,29 +110,26 @@ function buildAuth() {
   return oAuth2Client;
 }
 
-// TODO: Update to be callable function.
 exports.addEventToFreeLessonCalendar = functions
     .region("us-west2")
     .https
-    .onRequest((request, response) => {
+    .onCall((data, context) => {
       const eventData = {
         calendarId: FREE_LESSON_CALENDAR_ID,
-        eventName: request.body.eventName,
-        description: request.body.description,
-        startTime: request.body.startTime,
-        endTime: request.body.endTime,
-        timeZone: request.body.timeZone,
-        recurrence: request.body.recurrence,
+        eventName: data.eventName,
+        description: data.description,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        timeZone: data.timeZone,
+        recurrence: data.recurrence,
       };
 
-      addEvent(eventData).then((data) => {
-        response.status(200).send(data);
-        return;
-      }).catch((err) => {
-        console.error(err.stack);
-        response.status(500).send(err.message);
-        return;
-      });
+      return addEvent(eventData)
+          .then((data) => data)
+          .catch((err) => {
+            console.error(err);
+            throw new functions.https.HttpsError("internal", err);
+          });
     });
 
 exports.listAllEventsFromFreeLessonCalendar = functions
@@ -144,9 +141,7 @@ exports.listAllEventsFromFreeLessonCalendar = functions
           data.timeZone,
           data.timeMin,
           data.timeMax)
-          .then((result) => {
-            return result;
-          })
+          .then((result) => result)
           .catch((err) => {
             console.error(err);
             throw new functions.https.HttpsError("internal", err);
@@ -162,9 +157,7 @@ exports.listAllEventsFromPreschoolLessonCalendar = functions
           data.timeZone,
           data.timeMin,
           data.timeMax)
-          .then((result) => {
-            return result;
-          })
+          .then((result) => result)
           .catch((err) => {
             console.error(err);
             throw new functions.https.HttpsError("internal", err);
@@ -180,9 +173,7 @@ exports.listAllEventsFromPrivateLessonCalendar = functions
           data.timeZone,
           data.timeMin,
           data.timeMax)
-          .then((result) => {
-            return result;
-          })
+          .then((result) => result)
           .catch((err) => {
             console.error(err);
             throw new functions.https.HttpsError("internal", err);
