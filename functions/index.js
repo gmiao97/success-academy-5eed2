@@ -59,22 +59,28 @@ function updateEvent(event) {
 
 /**
  * Gets events with start time between {@param timeMin} and {@param timeMax}
- * @param {string} calendarId
- * @param {string} timeZone Time zone used in the response.
- * @param {string} timeMin Lower bound (exclusive) for an event's end time.
- * @param {string} timeMax Upper bound (exclusive) for an event's start time.
+ * @param {Object} query
  * @return {Promise}
  */
-function getEvents(calendarId, timeZone, timeMin, timeMax) {
+function getEvents(query) {
   const params = {
     auth: buildAuth(),
-    calendarId: calendarId,
+    calendarId: query.calendarId,
     orderBy: "startTime",
     singleEvents: true,
-    timeZone: timeZone,
   };
-  timeMin && (params.timeMin = timeMin);
-  timeMax && (params.timeMax = timeMax);
+  query.timeZone && (params.timeZone = query.timeZone);
+  query.timeMin && (params.timeMin = query.timeMin);
+  query.timeMax && (params.timeMax = query.timeMax);
+
+  params.sharedExtendedProperty = [];
+  if (query.studentIdList) {
+    for (const studentId of query.studentIdList) {
+      params.sharedExtendedProperty.push(`${studentId}=student`);
+    }
+  }
+  query.teacherId &&
+    (params.sharedExtendedProperty.push(`${query.teacherId}=teacher`));
 
   return new Promise((resolve, reject) => {
     calendar.events.list(params,
@@ -300,11 +306,14 @@ exports.listAllEventsFromFreeLessonCalendar = functions
     .region("us-west2")
     .https
     .onCall((data, context) => {
-      return getEvents(
-          FREE_LESSON_CALENDAR_ID,
-          data.timeZone,
-          data.timeMin,
-          data.timeMax)
+      const query = {
+        calendarId: FREE_LESSON_CALENDAR_ID,
+        timeZone: data.timeZone,
+        timeMin: data.timeMin,
+        timeMax: data.timeMax,
+      };
+
+      return getEvents(query)
           .then((result) => result)
           .catch((err) => {
             console.error(err);
@@ -316,11 +325,16 @@ exports.listAllEventsFromPreschoolLessonCalendar = functions
     .region("us-west2")
     .https
     .onCall((data, context) => {
-      return getEvents(
-          PRESCHOOL_LESSON_CALENDAR_ID,
-          data.timeZone,
-          data.timeMin,
-          data.timeMax)
+      const query = {
+        calendarId: PRESCHOOL_LESSON_CALENDAR_ID,
+        timeZone: data.timeZone,
+        timeMin: data.timeMin,
+        timeMax: data.timeMax,
+        studentIdList: data.studentIdList,
+        teacherId: data.teacherId,
+      };
+
+      return getEvents(query)
           .then((result) => result)
           .catch((err) => {
             console.error(err);
@@ -332,11 +346,16 @@ exports.listAllEventsFromPrivateLessonCalendar = functions
     .region("us-west2")
     .https
     .onCall((data, context) => {
-      return getEvents(
-          PRIVATE_LESSON_CALENDAR_ID,
-          data.timeZone,
-          data.timeMin,
-          data.timeMax)
+      const query = {
+        calendarId: PRIVATE_LESSON_CALENDAR_ID,
+        timeZone: data.timeZone,
+        timeMin: data.timeMin,
+        timeMax: data.timeMax,
+        studentIdList: data.studentIdList,
+        teacherId: data.teacherId,
+      };
+
+      return getEvents(query)
           .then((result) => result)
           .catch((err) => {
             console.error(err);
