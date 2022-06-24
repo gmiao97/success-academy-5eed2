@@ -323,7 +323,7 @@ exports.updateEventInPrivateLessonCalendar = functions
           });
     });
 
-exports.listAllEventsFromFreeLessonCalendar = functions
+exports.listEventsFromFreeLessonCalendar = functions
     .region("us-west2")
     .https
     .onCall((data, context) => {
@@ -342,7 +342,7 @@ exports.listAllEventsFromFreeLessonCalendar = functions
           });
     });
 
-exports.listAllEventsFromPreschoolLessonCalendar = functions
+exports.listEventsFromPreschoolLessonCalendar = functions
     .region("us-west2")
     .https
     .onCall((data, context) => {
@@ -363,7 +363,7 @@ exports.listAllEventsFromPreschoolLessonCalendar = functions
           });
     });
 
-exports.listAllEventsFromPrivateLessonCalendar = functions
+exports.listEventsFromPrivateLessonCalendar = functions
     .region("us-west2")
     .https
     .onCall((data, context) => {
