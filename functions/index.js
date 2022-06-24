@@ -35,7 +35,7 @@ function addEvent(event) {
 }
 
 /** Updates an event
- * @param {Object} event The parameters for event creation.
+ * @param {Object} event The parameters for event update.
  * @return {Promise} A promise indicating result of calling Google Calendar
  * API
  */
@@ -47,6 +47,27 @@ function updateEvent(event) {
       eventId: event.eventId,
       conferenceDataVersion: 1,
       requestBody: buildResource(event),
+    }, (err, res) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(res.data);
+      }
+    });
+  });
+}
+
+/** Deletes an event
+ * @param {Object} event The parameters for event deletion.
+ * @return {Promise} A promise indicating result of calling Google Calendar
+ * API
+ */
+function deleteEvent(event) {
+  return new Promise((resolve, reject) => {
+    calendar.events.delete({
+      auth: buildAuth(),
+      calendarId: event.calendarId,
+      eventId: event.eventId,
     }, (err, res) => {
       if (err) {
         reject(err);
@@ -356,6 +377,48 @@ exports.listAllEventsFromPrivateLessonCalendar = functions
       };
 
       return getEvents(query)
+          .then((result) => result)
+          .catch((err) => {
+            console.error(err);
+            throw new functions.https.HttpsError("internal", err);
+          });
+    });
+
+exports.deleteEventFromFreeLessonCalendar = functions
+    .region("us-west2")
+    .https
+    .onCall((data, context) => {
+      return deleteEvent({
+        calendarId: FREE_LESSON_CALENDAR_ID,
+        eventId: data.eventId})
+          .then((result) => result)
+          .catch((err) => {
+            console.error(err);
+            throw new functions.https.HttpsError("internal", err);
+          });
+    });
+
+exports.deleteEventFromPreschoolLessonCalendar = functions
+    .region("us-west2")
+    .https
+    .onCall((data, context) => {
+      return deleteEvent({
+        calendarId: PRESCHOOL_LESSON_CALENDAR_ID,
+        eventId: data.eventId})
+          .then((result) => result)
+          .catch((err) => {
+            console.error(err);
+            throw new functions.https.HttpsError("internal", err);
+          });
+    });
+
+exports.deleteEventFromPrivateLessonCalendar = functions
+    .region("us-west2")
+    .https
+    .onCall((data, context) => {
+      return deleteEvent({
+        calendarId: PRIVATE_LESSON_CALENDAR_ID,
+        eventId: data.eventId})
           .then((result) => result)
           .catch((err) => {
             console.error(err);
