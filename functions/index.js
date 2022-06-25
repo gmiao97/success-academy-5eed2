@@ -190,6 +190,8 @@ exports.addEventToFreeLessonCalendar = functions
         endTime: data.endTime,
         timeZone: data.timeZone,
         recurrence: data.recurrence,
+        teacherId: data.teacherId,
+        studentIdList: data.studentIdList,
       };
 
       return addEvent(eventData)
@@ -212,6 +214,7 @@ exports.addEventToPreschoolLessonCalendar = functions
         endTime: data.endTime,
         timeZone: data.timeZone,
         recurrence: data.recurrence,
+        teacherId: data.teacherId,
         studentIdList: data.studentIdList,
       };
 
@@ -261,6 +264,8 @@ exports.updateEventInFreeLessonCalendar = functions
         endTime: data.endTime,
         timeZone: data.timeZone,
         recurrence: data.recurrence,
+        teacherId: data.teacherId,
+        studentIdList: data.studentIdList,
       };
 
       return updateEvent(eventData)
@@ -284,6 +289,7 @@ exports.updateEventInPreschoolLessonCalendar = functions
         endTime: data.endTime,
         timeZone: data.timeZone,
         recurrence: data.recurrence,
+        teacherId: data.teacherId,
         studentIdList: data.studentIdList,
       };
 
@@ -330,6 +336,8 @@ exports.listEventsFromFreeLessonCalendar = functions
         timeZone: data.timeZone,
         timeMin: data.timeMin,
         timeMax: data.timeMax,
+        teacherId: data.teacherId,
+        studentIdList: data.studentIdList,
       };
 
       return getEvents(query)
@@ -349,6 +357,7 @@ exports.listEventsFromPreschoolLessonCalendar = functions
         timeZone: data.timeZone,
         timeMin: data.timeMin,
         timeMax: data.timeMax,
+        teacherId: data.teacherId,
         studentIdList: data.studentIdList,
       };
 
@@ -369,8 +378,8 @@ exports.listEventsFromPrivateLessonCalendar = functions
         timeZone: data.timeZone,
         timeMin: data.timeMin,
         timeMax: data.timeMax,
-        studentIdList: data.studentIdList,
         teacherId: data.teacherId,
+        studentIdList: data.studentIdList,
       };
 
       return getEvents(query)
