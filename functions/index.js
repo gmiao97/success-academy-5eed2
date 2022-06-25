@@ -131,7 +131,7 @@ function buildResource(event) {
     event.timeZone && (resource.end.timeZone = event.timeZone);
   }
 
-  event.eventName && (resource.summary = event.eventName);
+  event.summary && (resource.summary = event.summary);
   event.description && (resource.description = event.description);
   resource.anyoneCanAddSelf = true;
   resource.guestsCanInviteOthers = false;
@@ -184,7 +184,7 @@ exports.addEventToFreeLessonCalendar = functions
     .onCall((data, context) => {
       const eventData = {
         calendarId: FREE_LESSON_CALENDAR_ID,
-        eventName: data.eventName,
+        summary: data.summary,
         description: data.description,
         startTime: data.startTime,
         endTime: data.endTime,
@@ -206,13 +206,12 @@ exports.addEventToPreschoolLessonCalendar = functions
     .onCall((data, context) => {
       const eventData = {
         calendarId: PRESCHOOL_LESSON_CALENDAR_ID,
-        eventName: data.eventName,
+        summary: data.summary,
         description: data.description,
         startTime: data.startTime,
         endTime: data.endTime,
         timeZone: data.timeZone,
         recurrence: data.recurrence,
-        teacherId: data.teacherId,
         studentIdList: data.studentIdList,
       };
 
@@ -230,7 +229,7 @@ exports.addEventToPrivateLessonCalendar = functions
     .onCall((data, context) => {
       const eventData = {
         calendarId: PRIVATE_LESSON_CALENDAR_ID,
-        eventName: data.eventName,
+        summary: data.summary,
         description: data.description,
         startTime: data.startTime,
         endTime: data.endTime,
@@ -256,7 +255,7 @@ exports.updateEventInFreeLessonCalendar = functions
       const eventData = {
         calendarId: FREE_LESSON_CALENDAR_ID,
         eventId: data.eventId,
-        eventName: data.eventName,
+        summary: data.summary,
         description: data.description,
         startTime: data.startTime,
         endTime: data.endTime,
@@ -279,13 +278,12 @@ exports.updateEventInPreschoolLessonCalendar = functions
       const eventData = {
         calendarId: PRESCHOOL_LESSON_CALENDAR_ID,
         eventId: data.eventId,
-        eventName: data.eventName,
+        summary: data.summary,
         description: data.description,
         startTime: data.startTime,
         endTime: data.endTime,
         timeZone: data.timeZone,
         recurrence: data.recurrence,
-        teacherId: data.teacherId,
         studentIdList: data.studentIdList,
       };
 
@@ -304,7 +302,7 @@ exports.updateEventInPrivateLessonCalendar = functions
       const eventData = {
         calendarId: PRIVATE_LESSON_CALENDAR_ID,
         eventId: data.eventId,
-        eventName: data.eventName,
+        summary: data.summary,
         description: data.description,
         startTime: data.startTime,
         endTime: data.endTime,
@@ -352,7 +350,6 @@ exports.listEventsFromPreschoolLessonCalendar = functions
         timeMin: data.timeMin,
         timeMax: data.timeMax,
         studentIdList: data.studentIdList,
-        teacherId: data.teacherId,
       };
 
       return getEvents(query)
