@@ -1,10 +1,15 @@
 const {google} = require("googleapis");
 const OAuth2 = google.auth.OAuth2;
 const calendar = google.calendar("v3");
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v1");
+// const functionsV2 = require("firebase-functions/v2");
 const randomstring = require("randomstring");
+const credentials = require("./credentials.json");
+const {Stripe} = require("stripe");
+const stripe = new Stripe(credentials.stripe.secret, {
+  apiVersion: "2020-08-27",
+});
 
-const googleCredentials = require("./credentials.json");
 const FREE_LESSON_CALENDAR_ID =
   "a1v2bktm2g9rgariippf2ivhms@group.calendar.google.com";
 const PRESCHOOL_LESSON_CALENDAR_ID =
@@ -168,12 +173,12 @@ function buildResource(event) {
  */
 function buildAuth() {
   const oAuth2Client = new OAuth2(
-      googleCredentials.web.client_id,
-      googleCredentials.web.client_secret,
-      googleCredentials.web.redirect_uris[0],
+      credentials.web.client_id,
+      credentials.web.client_secret,
+      credentials.web.redirect_uris[0],
   );
   oAuth2Client.setCredentials({
-    refresh_token: googleCredentials.refresh_token,
+    refresh_token: credentials.refresh_token,
   });
   return oAuth2Client;
 }
@@ -431,3 +436,84 @@ exports.deleteEventFromPrivateLessonCalendar = functions
             throw new functions.https.HttpsError("internal", err);
           });
     });
+
+exports.handleStripeWebhookEvents = functions
+    .region("us-west2")
+    .https
+    .onRequest((request, response) => {
+      let event;
+      try {
+        event = stripe.webhooks.constructEvent(
+            request.rawBody,
+            request.headers["stripe-signature"],
+            credentials.stripe.signing);
+      } catch (err) {
+        return response.status(400).send();
+      }
+
+      if (event.type === "customer.subscription.updated") {
+        const updatedSubscription = event.data.object;
+        const previousSubscription = event.data.previous_attributes;
+
+        if (previousSubscription.status === "trialing" &&
+        updatedSubscription.status === "active") {
+          stripe.prices.list({active: true, type: "one_time"})
+              .then((signupPriceList) => {
+                const signupPriceId = signupPriceList.data[0].id;
+                console.log(signupPriceId);
+                return signupPriceId;
+              })
+              .then((signupPriceId) => {
+                stripe.invoiceItems.create({
+                  customer: updatedSubscription.customer,
+                  price: signupPriceId,
+                  discounts: [],
+                });
+                stripe.invoices.create({
+                  customer: updatedSubscription.customer,
+                  auto_advance: true,
+                });
+              })
+              .catch((err) => {
+                console.error(err.message);
+              });
+        }
+      }
+
+      response.status(200).send();
+    });
+
+// exports.stripetrialupdated = functionsV2
+//     .eventarc
+//     .onCustomEventPublished(
+//         {
+//           eventType: "com.stripe.v1.customer.subscription.updated",
+//           channel:
+//        "projects/success-academy-5eed2/locations/us-west1/channels/firebase",
+//           region: "us-west1",
+//         },
+//         (event) => {
+//           const updatedSubscription = event.data.data.object;
+//           const previousSubscription = event.data.data.previous_attributes;
+
+//           if (previousSubscription.status === "trialing" &&
+//         updatedSubscription.status === "active") {
+//             stripe.prices.list({active: true, type: "one_time"})
+//                 .then((signupPriceList) => {
+//                   const signupPriceId = signupPriceList.data[0].id;
+//                   console.log(signupPriceId);
+//                   return signupPriceId;
+//                 })
+//                 .then((signupPriceId) => stripe.invoiceItems.create({
+//                   customer: updatedSubscription.customer,
+//                   amount: 1,
+//                   currency: "USD",
+//                   // price: signupPriceId,
+//                   discounts: [],
+//                 }))
+//                 .catch((err) => {
+//                   console.error(err);
+//                   throw new functionsV2.https.HttpsError("internal", err);
+//                 });
+//           }
+//         });
