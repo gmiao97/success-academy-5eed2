@@ -457,6 +457,15 @@ exports.handleStripeWebhookEvents = functions
 
         if (previousSubscription.status === "trialing" &&
         updatedSubscription.status === "active") {
+          const discounts = [];
+          // isReferral is set in StripeSubscriptionCreate in frontend
+          if (updatedSubscription.metadata.isReferral === "true") {
+            discounts.push({"coupon": "ambassador20"});
+          }
+          if (updatedSubscription.metadata.isReferral === "free") {
+            discounts.push({"coupon": "ambassador100"});
+          }
+
           stripe.prices.list({active: true, type: "one_time"})
               .then((signupPriceList) => {
                 const signupPriceId = signupPriceList.data[0].id;
