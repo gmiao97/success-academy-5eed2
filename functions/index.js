@@ -1,3 +1,6 @@
+const admin = require("firebase-admin");
+admin.initializeApp();
+const db = admin.firestore();
 const functions = require("firebase-functions/v1");
 const credentials = require("./credentials.json");
 const {Stripe} = require("stripe");
@@ -60,4 +63,20 @@ exports.handleStripeWebhookEvents = functions
       }
 
       response.status(200).send();
+    });
+
+exports.sendEmailForNewUser = functions
+    .region("us-west2")
+    .auth
+    .user()
+    .onCreate((user) => {
+      return db.collection("mail").add({
+        to: user.email,
+        message: {
+          cc: "success.academy.us@gmail.com",
+          subject: "Success Academy - 登録確認しました",
+          text: "ご登録ありがとうございます。",
+          html: "<h1>ご登録ありがとうございます。</h1>",
+        },
+      });
     });
