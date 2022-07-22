@@ -71,9 +71,8 @@ exports.sendEmailForNewUser = functions
     .user()
     .onCreate((user) => {
       return db.collection("mail").add({
-        to: user.email,
+        to: [user.email, "success.academy.us@gmail.com"],
         message: {
-          cc: "success.academy.us@gmail.com",
           subject: "Success Academy - 登録確認しました",
           text: "ご登録ありがとうございます。",
           html: "<h1>ご登録ありがとうございます。</h1>",
