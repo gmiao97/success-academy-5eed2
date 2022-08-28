@@ -9,7 +9,7 @@ const credentials = require("../credentials.json");
  * @return {Promise} A promise indicating result of calling Google Calendar
  * API
  */
-exports.addEvent = function(event) {
+exports.insertEvent = function(event) {
   return new Promise((resolve, reject) => {
     calendar.events.insert({
       auth: buildAuth(),
@@ -75,7 +75,7 @@ exports.deleteEvent = function(event) {
  * @param {Object} query
  * @return {Promise}
  */
-exports.getEvents = function(query) {
+exports.listEvents = function(query) {
   const params = {
     auth: buildAuth(),
     calendarId: query.calendarId,
@@ -85,15 +85,6 @@ exports.getEvents = function(query) {
   query.timeZone && (params.timeZone = query.timeZone);
   query.timeMin && (params.timeMin = query.timeMin);
   query.timeMax && (params.timeMax = query.timeMax);
-
-  params.sharedExtendedProperty = [];
-  if (query.studentIdList) {
-    for (const studentId of query.studentIdList) {
-      params.sharedExtendedProperty.push(`${studentId}=student`);
-    }
-  }
-  query.teacherId &&
-    (params.sharedExtendedProperty.push(`${query.teacherId}=teacher`));
 
   return new Promise((resolve, reject) => {
     calendar.events.list(params,
@@ -113,18 +104,22 @@ exports.getEvents = function(query) {
  */
 function buildResource(event) {
   const resource = {};
+  resource.extendedProperties = {
+    shared: {
+      eventType: event.eventType,
+    },
+  };
 
-  if (event.startTime) {
-    resource.start = {dateTime: event.startTime};
-    event.timeZone && (resource.start.timeZone = event.timeZone);
-  }
-  if (event.endTime) {
-    resource.end = {dateTime: event.endTime};
-    event.timeZone && (resource.end.timeZone = event.timeZone);
-  }
-
-  event.summary && (resource.summary = event.summary);
-  event.description && (resource.description = event.description);
+  resource.start = {
+    dateTime: event.startTime,
+    timeZone: event.timeZone,
+  };
+  resource.end = {
+    dateTime: event.endTime,
+    timeZone: event.timeZone,
+  };
+  resource.summary = event.summary;
+  resource.description = event.description;
   resource.anyoneCanAddSelf = true;
   resource.guestsCanInviteOthers = false;
   resource.conferenceData = {
@@ -132,25 +127,13 @@ function buildResource(event) {
   },
   event.recurrence && (resource.recurrence = event.recurrence);
 
-  if (event.teacherId) {
-    resource.extendedProperties = {...resource.extendedProperties};
-    resource.extendedProperties.shared = {...resource.extendedProperties.shared,
-      [event.teacherId]: "teacher"};
-  }
-  if (event.studentIdList) {
-    resource.extendedProperties = {...resource.extendedProperties};
-    const studentIdExtendedProperties = {};
-    for (const studentId of event.studentIdList) {
-      studentIdExtendedProperties[studentId] = "student";
-    }
-    resource.extendedProperties.shared = {...resource.extendedProperties.shared,
-      ...studentIdExtendedProperties};
-  }
-  if (event.numPoints) {
-    resource.extendedProperties = {...resource.extendedProperties};
-    resource.extendedProperties.shared = {...resource.extendedProperties.shared,
-      numPoints: event.numPoints};
-  }
+  event.teacherId &&
+    (resource.extendedProperties.shared.teacherId = event.teacherId);
+  event.studentIdList &&
+    (resource.extendedProperties.shared.studentIdList =
+      JSON.stringify(event.studentIdList));
+  event.numPoints &&
+    (resource.extendedProperties.shared.numPoints = event.numPoints);
 
   return resource;
 }

@@ -8,7 +8,7 @@ const stripe = new Stripe(credentials.stripe.secret, {
   apiVersion: "2020-08-27",
 });
 
-exports.calendarFunctions = require("./calendar/calendar-functions");
+exports.calendar_functions = require("./calendar/calendar-functions");
 
 exports.handleStripeWebhookEvents = functions
     .region("us-west2")
