@@ -63,6 +63,7 @@ exports.list_events = functions
         timeZone: data.timeZone,
         timeMin: data.timeMin,
         timeMax: data.timeMax,
+        singleEvents: data.singleEvents,
       };
 
       return calendarUtils.listEvents(query)

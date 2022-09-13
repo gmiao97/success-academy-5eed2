@@ -79,8 +79,7 @@ exports.listEvents = function(query) {
   const params = {
     auth: buildAuth(),
     calendarId: query.calendarId,
-    orderBy: "startTime",
-    singleEvents: true,
+    singleEvents: query.singleEvents,
   };
   query.timeZone && (params.timeZone = query.timeZone);
   query.timeMin && (params.timeMin = query.timeMin);
