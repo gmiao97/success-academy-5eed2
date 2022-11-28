@@ -44,6 +44,9 @@ exports.handleStripeWebhookEvents = functions
                 const signupPriceId = signupPriceList.data.find(
                     (price) => price.metadata.id === "initiation",
                 );
+                if (signupPriceId === undefined) {
+                  throw new Error("No price with metadata id initiation");
+                }
                 console.log(signupPriceId);
                 return signupPriceId;
               })
