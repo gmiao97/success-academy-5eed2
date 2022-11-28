@@ -41,7 +41,9 @@ exports.handleStripeWebhookEvents = functions
 
           stripe.prices.list({active: true, type: "one_time"})
               .then((signupPriceList) => {
-                const signupPriceId = signupPriceList.data[0].id;
+                const signupPriceId = signupPriceList.data.find(
+                    (price) => price.metadata.id === "initiation",
+                );
                 console.log(signupPriceId);
                 return signupPriceId;
               })
