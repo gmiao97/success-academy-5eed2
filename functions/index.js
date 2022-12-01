@@ -13,7 +13,7 @@ exports.calendar_functions = require("./calendar/calendar-functions");
 exports.handleStripeWebhookEvents = functions
     .region("us-west2")
     .https
-    .onRequest((request, response) => {
+    .onRequest(async (request, response) => {
       let event;
       try {
         event = stripe.webhooks.constructEvent(
@@ -39,31 +39,46 @@ exports.handleStripeWebhookEvents = functions
             discounts.push({"coupon": "ambassador100"});
           }
 
-          stripe.prices.list({active: true, type: "one_time"})
-              .then((signupPriceList) => {
-                const signupPriceId = signupPriceList.data.find(
-                    (price) => price.metadata.id === "initiation",
-                );
-                if (signupPriceId === undefined) {
-                  throw new Error("No price with metadata id initiation");
-                }
-                console.log(signupPriceId);
-                return signupPriceId;
-              })
-              .then((signupPriceId) => {
-                stripe.invoiceItems.create({
-                  customer: updatedSubscription.customer,
-                  price: signupPriceId,
-                  discounts: [],
-                });
-                stripe.invoices.create({
-                  customer: updatedSubscription.customer,
-                  auto_advance: true,
-                });
-              })
-              .catch((err) => {
-                console.error(err.message);
-              });
+          const priceList =
+            await stripe.prices.list({active: true, type: "one_time"});
+          const signupPriceId = priceList.data.find(
+              (price) => price.metadata.id === "initiation").id;
+          if (signupPriceId === undefined) {
+            response.status(500).send("No price with metadata id initiation");
+          }
+          stripe.invoiceItems.create({
+            customer: updatedSubscription.customer,
+            price: signupPriceId,
+            discounts: [],
+          });
+          stripe.invoices.create({
+            customer: updatedSubscription.customer,
+            auto_advance: true,
+          });
+        }
+      }
+
+      if (event.type === "charge.succeeded") {
+        const priceList =
+            await stripe.prices.list({active: true, type: "one_time"});
+        const pointPriceId = priceList.data.find(
+            (price) => price.metadata.id === "point").id;
+        if (pointPriceId === undefined) {
+          response.status(500).send("No price with metadata id point");
+        }
+        const charge = event.data.object;
+        if (charge.metadata.priceId === pointPriceId) {
+          const doc = db.collection("myUsers")
+              .doc(charge.metadata.userId)
+              .collection("student_profiles")
+              .doc(charge.metadata.profileId);
+          const docData = await doc.get();
+          if (!docData.exists) {
+            response.status(500).send("Document does not exist");
+          }
+          await doc.update({
+            num_points: docData.get("num_points") + charge.amount,
+          });
         }
       }
 
