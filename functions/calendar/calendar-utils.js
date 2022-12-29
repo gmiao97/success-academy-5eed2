@@ -80,6 +80,7 @@ exports.listEvents = function(query) {
     auth: buildAuth(),
     calendarId: query.calendarId,
     singleEvents: query.singleEvents,
+    maxResults: 2500,
   };
   query.timeZone && (params.timeZone = query.timeZone);
   query.timeMin && (params.timeMin = query.timeMin);
