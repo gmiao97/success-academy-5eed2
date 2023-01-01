@@ -87,7 +87,7 @@ exports.handleStripeWebhookEvents = functions
         const customer = await stripe.customers.retrieve(customerId);
         const customerEmail = customer.email;
         console.log(customerEmail);
-        return db.collection("mail").add({
+        db.collection("mail").add({
           to: [customerEmail, "success.academy.us@gmail.com"],
           message: {
             subject: "Success Academy - 登録確認しました",
