@@ -82,20 +82,85 @@ exports.handleStripeWebhookEvents = functions
         }
       }
 
+      if (event.type === "customer.subscription.created") {
+        const customerId = event.data.object.customer;
+        const customer = await stripe.customers.retrieve(customerId);
+        const customerEmail = customer.email;
+        console.log(customerEmail);
+        return db.collection("mail").add({
+          to: [customerEmail, "success.academy.us@gmail.com"],
+          message: {
+            subject: "Success Academy - 登録確認しました",
+            html: `<p>
+            サクセス・アカデミーに会員登録いただきありがとうございました！<br>
+            会員向けフリーレッスンの参加手順について、簡単にご説明させていただきます。<br>
+            <br>
+            <body>
+                <p>
+                    <h4>(1)会員登録14日後に月会費の自動決済が始まります</h4>
+                    登録いただいてから14日間は、無料トライアル期間です。<br>
+                    14日後は、月会費が自動決済されますので、ご了承ください。<br>
+                    紹介コードなしでご登録された方は、月会費と一緒に体験後の入会費US$50もご請求させていただきます。<br>
+                    キャンセルをご希望の場合は、トライアル中にマイページ上でお手続きください。<br><br>
+                </p>
+            
+                <p>
+                    <h4>(2)クラスへの参加方法</h4> 
+                    会員向けフリーレッスンは、学年をこえて、クラス取り放題になっております。<br>
+                    小学生クラス・中学生クラスはどなたでもご参加いただけます。<br>
+                    お子様のレベルやスケジュールに合わせて、クラスにご参加ください！<br>
+            
+                    <br>
+                    ※未就学児クラスはオプションですので、コース選択をしないとそれらのクラスにはご参加いただけません。<br>
+                    また、未就学児クラスは人数制限をしており、全クラス予約が必要です。<br>
+            
+                    <br>
+                    クラスへの参加手順は以下の通りです。<br>
+                    （１）時間割を見て、参加したいクラスをチェックする。<br>
+                    （２）クラスが始まる前までに、参加したいクラスで使用するプリントを印刷しておく。<br>
+                    （印刷ができない場合は、ノートとペンがあれば大丈夫です！）<br>
+                    （３）時間になったら、クラスに参加する。※ZOOMのビデオはオンにしてご参加ください。<br>
+                    ★時間割・プリント・ZOOM情報は全てマイページ上にありますので、ご確認ください。<br><br>
+                </p>
+            
+                <p>
+                    <h4>(3)会員向けフリーレッスンのカリキュラムについて</h4>
+                    当塾のフリーレッスンのカリキュラムは3ヶ月でワンクールとなっております。<br>
+                    （通常、１年で学習する内容を３ヶ月にまとめています。）<br>
+                    今クールは1月3日〜3月26日です。<br><br>
+            
+                    <a href="https://mailchi.mp/2520fc266eb0/12?e=1fb03b9cbc">過去のメルマガ（2020年12月号）</a>の『Message』にて、カリキュラムについての詳しい説明が記載されてますので、ご確認いただけると幸いです。<br>
+                    また、最新のメルマガは<a href="https://docs.google.com/document/d/1fM2oD8FjPZtYxwIOfN5hk_wKvEuII4TW2P8YoL516Js/edit">こちら</a>からご確認ください！<br>
+                    <br>
+                    ご不明な点などありましたら、遠慮なくご連絡ください。<br>
+                    よろしくお願いします。<br><br>
+            
+                    サクセス・アカデミー<br>
+                    info@mercy-education.com
+            
+                </p>
+            
+            </body>
+            
+            </p>`,
+          },
+        });
+      }
+
       response.status(200).send();
     });
 
-exports.sendEmailForNewUser = functions
-    .region("us-west2")
-    .auth
-    .user()
-    .onCreate((user) => {
-      return db.collection("mail").add({
-        to: [user.email, "success.academy.us@gmail.com"],
-        message: {
-          subject: "Success Academy - 登録確認しました",
-          text: "ご登録ありがとうございます。",
-          html: "<h1>ご登録ありがとうございます。</h1>",
-        },
-      });
-    });
+// exports.sendEmailForNewUser = functions
+//     .region("us-west2")
+//     .auth
+//     .user()
+//     .onCreate((user) => {
+//       return db.collection("mail").add({
+//         to: [user.email, "success.academy.us@gmail.com"],
+//         message: {
+//           subject: "Success Academy - 登録確認しました",
+//           text: "ご登録ありがとうございます。",
+//           html: "<h1>ご登録ありがとうございます。</h1>",
+//         },
+//       });
+//     });
