@@ -44,7 +44,8 @@ exports.handleStripeWebhookEvents = functions
           const signupPriceId = priceList.data.find(
               (price) => price.metadata.id === "initiation").id;
           if (signupPriceId === undefined) {
-            response.status(500).send("No price with metadata id initiation");
+            response.status(500)
+                .send("No price with metadata: 'id: initiation'");
           }
           stripe.invoiceItems.create({
             customer: updatedSubscription.customer,
@@ -64,7 +65,7 @@ exports.handleStripeWebhookEvents = functions
         const pointPriceId = priceList.data.find(
             (price) => price.metadata.id === "point").id;
         if (pointPriceId === undefined) {
-          response.status(500).send("No price with metadata id point");
+          response.status(500).send("No price with metadata: 'id: point'");
         }
         const charge = event.data.object;
         if (charge.metadata.priceId === pointPriceId) {
@@ -74,7 +75,8 @@ exports.handleStripeWebhookEvents = functions
               .doc(charge.metadata.profileId);
           const docData = await doc.get();
           if (!docData.exists) {
-            response.status(500).send("Document does not exist");
+            response.status(500)
+                .send("[charge.succeeded] student profile doc does not exist");
           }
           await doc.update({
             num_points: docData.get("num_points") + charge.amount,
@@ -83,15 +85,24 @@ exports.handleStripeWebhookEvents = functions
       }
 
       if (event.type === "customer.subscription.created") {
-        const customerId = event.data.object.customer;
+        const subscription = event.data.object;
+        const profileId = subscription.metadata.profile_id;
+
+        const customerId = subscription.customer;
         const customer = await stripe.customers.retrieve(customerId);
-        const customerEmail = customer.email;
-        console.log(customerEmail);
+
+        const studentsQuery = await db.collectionGroup("student_profiles")
+            .get();
+        const profile = studentsQuery.docs
+            .find((doc) => doc.id === profileId);
+
         db.collection("mail").add({
-          to: [customerEmail, "success.academy.us@gmail.com"],
+          to: [customer.email, "success.academy.us@gmail.com"],
           message: {
             subject: "Success Academy - 登録確認しました",
             html: `<p>
+            ${profile.get("last_name")} ${profile.get("first_name")}様
+            <br>
             サクセス・アカデミーに会員登録いただきありがとうございました！<br>
             会員向けフリーレッスンの参加手順について、簡単にご説明させていただきます。<br>
             <br>
