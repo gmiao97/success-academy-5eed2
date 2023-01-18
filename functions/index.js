@@ -51,10 +51,12 @@ exports.handleStripeWebhookEvents = functions
             customer: updatedSubscription.customer,
             price: signupPriceId,
             discounts: discounts,
+            subscription: updatedSubscription.id,
           });
           stripe.invoices.create({
             customer: updatedSubscription.customer,
             auto_advance: true,
+            subscription: updatedSubscription.id,
           });
         }
       }
