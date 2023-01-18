@@ -50,7 +50,7 @@ exports.handleStripeWebhookEvents = functions
           stripe.invoiceItems.create({
             customer: updatedSubscription.customer,
             price: signupPriceId,
-            discounts: [],
+            discounts: discounts,
           });
           stripe.invoices.create({
             customer: updatedSubscription.customer,
