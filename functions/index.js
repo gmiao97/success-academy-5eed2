@@ -32,10 +32,10 @@ exports.handleStripeWebhookEvents = functions
         updatedSubscription.status === "active") {
           const discounts = [];
           // isReferral is set in StripeSubscriptionCreate in frontend
-          if (updatedSubscription.metadata.isReferral === "true") {
+          if (updatedSubscription.metadata.is_referral === "true") {
             discounts.push({"coupon": "ambassador20"});
           }
-          if (updatedSubscription.metadata.isReferral === "free") {
+          if (updatedSubscription.metadata.is_referral === "free") {
             discounts.push({"coupon": "ambassador100"});
           }
 
