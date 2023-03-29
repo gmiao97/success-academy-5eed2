@@ -12,7 +12,7 @@ exports.calendar_functions = require("./calendar/calendar-functions");
 
 exports.handleStripeWebhookEvents = functions
     .region("us-west2")
-    .runWith({timeoutSeconds: 540})
+    .runWith({timeoutSeconds: 60, memory: "8GB"})
     .https
     .onRequest(async (request, response) => {
       let event;

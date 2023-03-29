@@ -87,11 +87,13 @@ exports.listEvents = function(query) {
   query.timeMax && (params.timeMax = query.timeMax);
 
   return new Promise((resolve, reject) => {
+    console.log("Sending list events request to Google Calendar API");
     calendar.events.list(params,
         (err, res) => {
           if (err) {
             reject(err);
           } else {
+            console.log("Received response from Google Calendar API");
             resolve(res.data.items);
           }
         });

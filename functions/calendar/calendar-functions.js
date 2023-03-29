@@ -3,7 +3,7 @@ const calendarUtils = require("./calendar-utils");
 
 exports.insert_event = functions
     .region("us-west2")
-    .runWith({timeoutSeconds: 540})
+    .runWith({timeoutSeconds: 60, memory: "8GB"})
     .https
     .onCall((data, context) => {
       const eventData = {
@@ -30,7 +30,7 @@ exports.insert_event = functions
 
 exports.update_event = functions
     .region("us-west2")
-    .runWith({timeoutSeconds: 540})
+    .runWith({timeoutSeconds: 60, memory: "8GB"})
     .https
     .onCall((data, context) => {
       const eventData = {
@@ -58,7 +58,7 @@ exports.update_event = functions
 
 exports.list_events = functions
     .region("us-west2")
-    .runWith({timeoutSeconds: 540})
+    .runWith({timeoutSeconds: 60, memory: "8GB"})
     .https
     .onCall((data, context) => {
       const query = {
@@ -79,7 +79,7 @@ exports.list_events = functions
 
 exports.delete_event = functions
     .region("us-west2")
-    .runWith({timeoutSeconds: 540})
+    .runWith({timeoutSeconds: 60, memory: "8GB"})
     .https
     .onCall((data, context) => {
       return calendarUtils.deleteEvent({
