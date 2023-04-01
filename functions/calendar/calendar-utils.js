@@ -71,6 +71,30 @@ exports.deleteEvent = function(event) {
 };
 
 /**
+ * Get event with eventId
+ * @param {Object} query
+ * @return {Promise}
+ */
+exports.getEvent = function(query) {
+  const params = {
+    auth: buildAuth(),
+    calendarId: query.calendarId,
+    eventId: query.eventId,
+  };
+
+  return new Promise((resolve, reject) => {
+    calendar.events.get(params,
+        (err, res) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(res.data);
+          }
+        });
+  });
+};
+
+/**
  * Gets events with start time between {@param timeMin} and {@param timeMax}
  * @param {Object} query
  * @return {Promise}

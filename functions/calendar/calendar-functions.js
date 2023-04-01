@@ -56,6 +56,24 @@ exports.update_event = functions
           });
     });
 
+exports.get_event = functions
+    .region("us-west2")
+    .runWith({timeoutSeconds: 60, memory: "8GB"})
+    .https
+    .onCall((data, context) => {
+      const query = {
+        calendarId: "primary",
+        eventId: data.eventId,
+      };
+
+      return calendarUtils.getEvent(query)
+          .then((result) => result)
+          .catch((err) => {
+            console.error(err);
+            throw new functions.https.HttpsError("internal", err);
+          });
+    });
+
 exports.list_events = functions
     .region("us-west2")
     .runWith({timeoutSeconds: 60, memory: "8GB"})
