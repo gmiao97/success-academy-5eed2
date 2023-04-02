@@ -141,7 +141,7 @@ exports.handleStripeWebhookEvents = functions
                     <h4>(3)会員向けフリーレッスンのカリキュラムについて</h4>
                     当塾のフリーレッスンのカリキュラムは3ヶ月でワンクールとなっております。<br>
                     （通常、１年で学習する内容を３ヶ月にまとめています。）<br>
-                    今クールは1月3日〜3月26日です。<br><br>
+                    今クールは4月3日〜6月24日です。<br><br>
             
                     <a href="https://mailchi.mp/2520fc266eb0/12?e=1fb03b9cbc">過去のメルマガ（2020年12月号）</a>の『Message』にて、カリキュラムについての詳しい説明が記載されてますので、ご確認いただけると幸いです。<br>
                     また、最新のメルマガは<a href="https://docs.google.com/document/d/1fM2oD8FjPZtYxwIOfN5hk_wKvEuII4TW2P8YoL516Js/edit">こちら</a>からご確認ください！<br>
