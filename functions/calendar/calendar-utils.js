@@ -4,6 +4,11 @@ const calendar = google.calendar("v3");
 const randomstring = require("randomstring");
 const credentials = require("../credentials.json");
 
+// eslint-disable-next-line max-len
+const listFields = "items(id,recurringEventId,summary,description,start,end,recurrence,extendedProperties)";
+// eslint-disable-next-line max-len
+const getFields = "id,recurringEventId,summary,description,start,end,recurrence,extendedProperties";
+
 /** Adds a new event
  * @param {Object} event The parameters for event creation.
  * @return {Promise} A promise indicating result of calling Google Calendar
@@ -80,6 +85,7 @@ exports.getEvent = function(query) {
     auth: buildAuth(),
     calendarId: query.calendarId,
     eventId: query.eventId,
+    fields: getFields,
   };
 
   return new Promise((resolve, reject) => {
@@ -105,6 +111,7 @@ exports.listEvents = function(query) {
     calendarId: query.calendarId,
     singleEvents: query.singleEvents,
     maxResults: 2500,
+    fields: listFields,
   };
   query.timeZone && (params.timeZone = query.timeZone);
   query.timeMin && (params.timeMin = query.timeMin);
