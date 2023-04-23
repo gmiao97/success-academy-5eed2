@@ -5,9 +5,9 @@ const randomstring = require("randomstring");
 const credentials = require("../credentials.json");
 
 // eslint-disable-next-line max-len
-const listFields = "items(id,recurringEventId,summary,description,start,end,recurrence,extendedProperties)";
+const listEventFields = "items(id,recurringEventId,summary,description,start,end,recurrence,extendedProperties)";
 // eslint-disable-next-line max-len
-const getFields = "id,recurringEventId,summary,description,start,end,recurrence,extendedProperties";
+const getEventFields = "id,recurringEventId,summary,description,start,end,recurrence,extendedProperties";
 
 /** Adds a new event
  * @param {Object} event The parameters for event creation.
@@ -85,7 +85,7 @@ exports.getEvent = function(query) {
     auth: buildAuth(),
     calendarId: query.calendarId,
     eventId: query.eventId,
-    fields: getFields,
+    fields: getEventFields,
   };
 
   return new Promise((resolve, reject) => {
@@ -111,7 +111,7 @@ exports.listEvents = function(query) {
     calendarId: query.calendarId,
     singleEvents: query.singleEvents,
     maxResults: 2500,
-    fields: listFields,
+    fields: listEventFields,
   };
   query.timeZone && (params.timeZone = query.timeZone);
   query.timeMin && (params.timeMin = query.timeMin);
