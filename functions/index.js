@@ -164,6 +164,50 @@ exports.handleStripeWebhookEvents = functions
       response.status(200).send();
     });
 
+exports.email_attendees = functions
+    .region("us-west2")
+    .runWith({timeoutSeconds: 60, memory: "8GB"})
+    .https
+    .onCall(async (data, context) => {
+      const recipientList = ["success.academy.us@gmail.com"];
+
+      const teacherProfile = (await db.collectionGroup("teacher_profile")
+          .get()).docs.find((doc) => doc.id === data.teacherId);
+      if (teacherProfile != undefined) {
+        recipientList.push((await teacherProfile.ref.parent.parent.get())
+            .get("email"));
+      }
+
+      const studentProfileList = (await db.collectionGroup("student_profiles")
+          .get()).docs.filter((doc) => data.studentIdList.includes(doc.id));
+      for (const queryDocumentSnapshot of studentProfileList) {
+        recipientList.push((await queryDocumentSnapshot.ref.parent.parent.get())
+            .get("email"));
+      }
+
+      if (data.isCancel) {
+        db.collection("mail").add({
+          to: recipientList,
+          message: {
+            subject: "TEST Success Academy - レッスン予約キャンセル確認",
+            html: `<p>${data.summary} の予約をキャンセルしました。</p>`,
+          },
+        });
+      } else {
+        db.collection("mail").add({
+          to: recipientList,
+          message: {
+            subject: "TEST Success Academy - レッスン予約確認",
+            html: `<p><b>${data.summary}</b> の予約が確認されました。</p>
+            <br/>
+            <p><b>レッスン説明：</b>${data.description}</p>
+            <p><b>開始時間：</b>${data.startTime}</p>
+            <p><b>終了時間：</b>${data.endTime}</p>`,
+          },
+        });
+      }
+    });
+
 // exports.sendEmailForNewUser = functions
 //     .region("us-west2")
 //     .auth
