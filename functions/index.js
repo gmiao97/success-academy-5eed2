@@ -170,39 +170,84 @@ exports.email_attendees = functions
     .https
     .onCall(async (data, context) => {
       const recipientList = ["success.academy.us@gmail.com"];
+      const timeZoneList = ["Asia/Tokyo"];
 
       const teacherProfile = (await db.collectionGroup("teacher_profile")
           .get()).docs.find((doc) => doc.id === data.teacherId);
       if (teacherProfile != undefined) {
-        recipientList.push((await teacherProfile.ref.parent.parent.get())
-            .get("email"));
+        const teacherUser = await teacherProfile.ref.parent.parent.get();
+        recipientList.push(teacherUser.get("email"));
+        timeZoneList.push(teacherUser.get("time_zone"));
       }
 
-      const studentProfileList = (await db.collectionGroup("student_profiles")
-          .get()).docs.filter((doc) => data.studentIdList.includes(doc.id));
-      for (const queryDocumentSnapshot of studentProfileList) {
-        recipientList.push((await queryDocumentSnapshot.ref.parent.parent.get())
-            .get("email"));
+      const studentProfile = (await db.collectionGroup("student_profiles")
+          .get()).docs.find((doc) => doc.id === data.studentId);
+      if (studentProfile != undefined) {
+        const studentUser = await studentProfile.ref.parent.parent.get();
+        recipientList.push(studentUser.get("email"));
+        timeZoneList.push(studentUser.get("time_zone"));
       }
 
       if (data.isCancel) {
         db.collection("mail").add({
           to: recipientList,
           message: {
-            subject: "TEST Success Academy - レッスン予約キャンセル確認",
-            html: `<p>${data.summary} の予約をキャンセルしました。</p>`,
+            subject: "Success Academy - レッスン予約キャンセル確認 - Lesson Cancellation",
+            html: 
+            `<div>
+              <p><b>${data.summary}</b> の予約をキャンセルしました。</p>
+            </div>
+            <div>
+              <p><b>生徒：</b>${studentProfile.get("last_name")} ${studentProfile.get("first_name")}</p>
+              <p><b>レッスン説明：</b>${data.description}</p>
+              <h3>開始時間</h3>
+              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.startTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+              <h3>終了時間</h3>
+              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.endTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+            </div>
+            <hr/>
+            <div>
+              <p><b>${data.summary}</b> Cancel Confirmation</p>
+            </div>
+            <div>
+              <p><b>Student: </b>${studentProfile.get("last_name")} ${studentProfile.get("first_name")}</p>
+              <p><b>Lesson description: </b>${data.description}</p>
+              <h3>Start time</h3>
+              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.startTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+              <h3>End time</h3>
+              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.endTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+            </div>`,
           },
         });
       } else {
         db.collection("mail").add({
           to: recipientList,
           message: {
-            subject: "TEST Success Academy - レッスン予約確認",
-            html: `<p><b>${data.summary}</b> の予約が確認されました。</p>
-            <br/>
-            <p><b>レッスン説明：</b>${data.description}</p>
-            <p><b>開始時間：</b>${data.startTime}</p>
-            <p><b>終了時間：</b>${data.endTime}</p>`,
+            subject: "Success Academy - レッスン予約確認 - Lesson Confirmation",
+            html: 
+            `<div>
+              <p><b>${data.summary}</b> の予約が確認されました。</p>
+            </div>
+            <div>
+              <p><b>生徒：</b>${studentProfile.get("last_name")} ${studentProfile.get("first_name")}</p>
+              <p><b>レッスン説明：</b>${data.description}</p>
+              <h3>開始時間</h3>
+              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.startTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+              <h3>終了時間</h3>
+              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.endTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+            </div>
+            <hr/>
+            <div>
+              <p><b>${data.summary}</b> Signup Confirmation</p>
+            </div>
+            <div>
+              <p><b>Student:</b>${studentProfile.get("last_name")} ${studentProfile.get("first_name")}</p>
+              <p><b>Lesson description:</b>${data.description}</p>
+              <h3>Start time</h3>
+              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.startTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+              <h3>End time</h3>
+              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.endTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+            </div>`,
           },
         });
       }
