@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 const admin = require("firebase-admin");
 admin.initializeApp();
 const db = admin.firestore();
@@ -188,34 +189,38 @@ exports.email_attendees = functions
         timeZoneList.push(studentUser.get("time_zone"));
       }
 
+      const studentName = `${studentProfile.get("last_name")} ${studentProfile.get("first_name")}`;
+      const startTimes = timeZoneList.map((tz) => `<p><b>${tz}</b> ${new Date(data.startTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("");
+      const endTimes = timeZoneList.map((tz) => `<p><b>${tz}</b> ${new Date(data.endTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("");
+
       if (data.isCancel) {
         db.collection("mail").add({
           to: recipientList,
           message: {
             subject: "Success Academy - レッスン予約キャンセル確認 - Lesson Cancellation",
-            html: 
+            html:
             `<div>
               <p><b>${data.summary}</b> の予約をキャンセルしました。</p>
             </div>
             <div>
-              <p><b>生徒：</b>${studentProfile.get("last_name")} ${studentProfile.get("first_name")}</p>
+              <p><b>生徒：</b>${studentName}</p>
               <p><b>レッスン説明：</b>${data.description}</p>
               <h3>開始時間</h3>
-              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.startTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+              ${startTimes}
               <h3>終了時間</h3>
-              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.endTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+              ${endTimes}
             </div>
             <hr/>
             <div>
               <p><b>${data.summary}</b> Cancel Confirmation</p>
             </div>
             <div>
-              <p><b>Student: </b>${studentProfile.get("last_name")} ${studentProfile.get("first_name")}</p>
+              <p><b>Student: </b>${studentName}</p>
               <p><b>Lesson description: </b>${data.description}</p>
               <h3>Start time</h3>
-              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.startTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+              ${startTimes}
               <h3>End time</h3>
-              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.endTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+              ${endTimes}
             </div>`,
           },
         });
@@ -224,29 +229,29 @@ exports.email_attendees = functions
           to: recipientList,
           message: {
             subject: "Success Academy - レッスン予約確認 - Lesson Confirmation",
-            html: 
+            html:
             `<div>
               <p><b>${data.summary}</b> の予約が確認されました。</p>
             </div>
             <div>
-              <p><b>生徒：</b>${studentProfile.get("last_name")} ${studentProfile.get("first_name")}</p>
+              <p><b>生徒：</b>${studentName}</p>
               <p><b>レッスン説明：</b>${data.description}</p>
               <h3>開始時間</h3>
-              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.startTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+              ${startTimes}
               <h3>終了時間</h3>
-              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.endTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+              ${endTimes}
             </div>
             <hr/>
             <div>
               <p><b>${data.summary}</b> Signup Confirmation</p>
             </div>
             <div>
-              <p><b>Student:</b>${studentProfile.get("last_name")} ${studentProfile.get("first_name")}</p>
+              <p><b>Student:</b>${studentName}</p>
               <p><b>Lesson description:</b>${data.description}</p>
               <h3>Start time</h3>
-              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.startTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+              ${startTimes}
               <h3>End time</h3>
-              ${timeZoneList.map(tz => `<p><b>${tz}</b> ${new Date(data.endTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("")}
+              ${endTimes}
             </div>`,
           },
         });
