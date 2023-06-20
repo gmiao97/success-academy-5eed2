@@ -277,7 +277,7 @@ exports.send_reminder_emails = functions
       for (const event of events) {
         if (event?.extendedProperties?.shared?.eventType === "private" &&
             event?.extendedProperties?.private?.reminderSent !== "true") {
-          const recipientList = ["gmgm9797@gmail.com"];
+          const recipientList = ["success.academy.us@gmail.com"];
           const timeZoneList = ["Asia/Tokyo"];
 
           const teacherId = event?.extendedProperties?.shared?.teacherId;
