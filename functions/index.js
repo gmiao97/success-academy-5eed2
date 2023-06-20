@@ -3,6 +3,7 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 const db = admin.firestore();
 const functions = require("firebase-functions/v1");
+const calendarUtils = require("./calendar/calendar-utils");
 const credentials = require("./credentials.json");
 const {Stripe} = require("stripe");
 const stripe = new Stripe(credentials.stripe.secret, {
@@ -255,6 +256,97 @@ exports.email_attendees = functions
             </div>`,
           },
         });
+      }
+    });
+
+exports.send_reminder_emails = functions
+    .region("us-west2")
+    .runWith({timeoutSeconds: 60, memory: "8GB"})
+    .pubsub
+    .schedule("every 30 minutes")
+    .onRun(async (context) => {
+      const startTime = new Date(Date.now());
+      const endTime = new Date(startTime.getTime() + 86400000); // 24 hours
+      const query = {
+        calendarId: "primary",
+        timeMin: startTime.toISOString(),
+        timeMax: endTime.toISOString(),
+        singleEvents: true,
+      };
+      const events = await calendarUtils.listEvents(query);
+      for (const event of events) {
+        if (event?.extendedProperties?.shared?.eventType === "private" &&
+            event?.extendedProperties?.private?.reminderSent !== "true") {
+          const recipientList = ["gmgm9797@gmail.com"];
+          const timeZoneList = ["Asia/Tokyo"];
+
+          const teacherId = event?.extendedProperties?.shared?.teacherId;
+          if (teacherId !== undefined) {
+            const teacherProfile = (await db.collectionGroup("teacher_profile")
+                .get()).docs.find((doc) => doc.id === teacherId);
+            if (teacherProfile != undefined) {
+              const teacherUser = await teacherProfile.ref.parent.parent.get();
+              recipientList.push(teacherUser.get("email"));
+              timeZoneList.push(teacherUser.get("time_zone"));
+            }
+          }
+
+          const studentIds = JSON.parse(event?.extendedProperties?.shared?.studentIdList);
+          if (studentIds !== undefined) {
+            for (const id of studentIds) {
+              const studentProfile = (await db.collectionGroup("student_profiles")
+                  .get()).docs.find((doc) => doc.id === id);
+              if (studentProfile != undefined) {
+                const studentUser = await studentProfile.ref.parent.parent.get();
+                recipientList.push(studentUser.get("email"));
+                timeZoneList.push(studentUser.get("time_zone"));
+              }
+            }
+          }
+
+          const startTimes = timeZoneList.map((tz) => `<p><b>${tz}</b> ${new Date(event.start.dateTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("");
+          const endTimes = timeZoneList.map((tz) => `<p><b>${tz}</b> ${new Date(event.end.dateTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("");
+
+          db.collection("mail").add({
+            to: recipientList,
+            message: {
+              subject: "Success Academy - レッスン・リマインド",
+              html:
+              `<div>
+                <p><b>${event.summary}</b> 予約したレッスンが明日あります。</p>
+              </div>
+              <div>
+                <p><b>レッスン説明：</b>${event.description}</p>
+                <h3>開始時間</h3>
+                ${startTimes}
+                <h3>終了時間</h3>
+                ${endTimes}
+              </div>
+              <hr/>
+              <div>
+                <p><b>${event.summary}</b> You have a lesson tomorrow.</p>
+              </div>
+              <div>
+                <p><b>Lesson description:</b>${event.description}</p>
+                <h3>Start time</h3>
+                ${startTimes}
+                <h3>End time</h3>
+                ${endTimes}
+              </div>`,
+            },
+          });
+
+          const eventData = {
+            calendarId: "primary",
+            eventId: event.id,
+          };
+          return calendarUtils.patchEvent(eventData)
+              .then((data) => data)
+              .catch((err) => {
+                console.error(err);
+                throw new functions.https.HttpsError("internal", err);
+              });
+        }
       }
     });
 

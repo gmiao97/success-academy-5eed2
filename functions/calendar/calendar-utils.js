@@ -54,6 +54,35 @@ exports.updateEvent = function(event) {
   });
 };
 
+/** Patches an event
+ * @param {Object} event The parameters for event update.
+ * @return {Promise} A promise indicating result of calling Google Calendar
+ * API
+ */
+exports.patchEvent = function(event) {
+  return new Promise((resolve, reject) => {
+    calendar.events.patch({
+      auth: buildAuth(),
+      calendarId: event.calendarId,
+      eventId: event.eventId,
+      conferenceDataVersion: 1,
+      requestBody: {
+        extendedProperties: {
+          private: {
+            reminderSent: "true",
+          },
+        },
+      },
+    }, (err, res) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(res.data);
+      }
+    });
+  });
+};
+
 /** Deletes an event
  * @param {Object} event The parameters for event deletion.
  * @return {Promise} A promise indicating result of calling Google Calendar
