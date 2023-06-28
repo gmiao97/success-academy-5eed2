@@ -84,7 +84,7 @@ exports.handleStripeWebhookEvents = functions
                 .send("[charge.succeeded] student profile doc does not exist");
           }
           await doc.update({
-            num_points: docData.get("num_points") + charge.amount,
+            num_points: docData.get("num_points") + parseInt(charge.metadata.numPoints),
           });
         }
       }
@@ -364,3 +364,11 @@ exports.send_reminder_emails = functions
 //         },
 //       });
 //     });
+
+exports.verifyUser = functions
+    .region("us-west2")
+    .runWith({timeoutSeconds: 60, memory: "8GB"})
+    .https
+    .onCall(async (data, context) => {
+      admin.auth().updateUser(data.uid, {emailVerified: true}).then((userRecord) => console.log("Successfully verified user")).catch((error) => console.log("Failed to verify user"));
+    });
