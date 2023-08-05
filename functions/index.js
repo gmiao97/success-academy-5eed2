@@ -372,3 +372,11 @@ exports.verifyUser = functions
     .onCall(async (data, context) => {
       admin.auth().updateUser(data.uid, {emailVerified: true}).then((userRecord) => console.log("Successfully verified user")).catch((error) => console.log("Failed to verify user"));
     });
+
+exports.updateEmail = functions
+    .region("us-west2")
+    .runWith({timeoutSeconds: 60, memory: "8GB"})
+    .https
+    .onCall(async (data, context) => {
+      admin.auth().updateUser(data.uid, {email: data.email}).then((userRecord) => console.log("Successfully updated email")).catch((error) => console.log("Failed to update email"));
+    });
