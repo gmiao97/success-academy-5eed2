@@ -291,9 +291,11 @@ exports.send_reminder_emails = functions
             }
           }
 
+          let hasStudents = false;
           const studentIds = JSON.parse(event?.extendedProperties?.shared?.studentIdList);
           if (studentIds !== undefined) {
             for (const id of studentIds) {
+              hasStudents = true;
               const studentProfile = (await db.collectionGroup("student_profiles")
                   .get()).docs.find((doc) => doc.id === id);
               if (studentProfile != undefined) {
@@ -307,45 +309,47 @@ exports.send_reminder_emails = functions
           const startTimes = timeZoneList.map((tz) => `<p><b>${tz}</b> ${new Date(event.start.dateTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("");
           const endTimes = timeZoneList.map((tz) => `<p><b>${tz}</b> ${new Date(event.end.dateTime).toLocaleString("ja-JP", {timeZone: tz})}</p>`).join("");
 
-          db.collection("mail").add({
-            to: recipientList,
-            message: {
-              subject: "Success Academy - レッスン・リマインド",
-              html:
-              `<div>
-                <p><b>${event.summary}</b> 予約したレッスンが明日あります。</p>
-              </div>
-              <div>
-                <p><b>レッスン説明：</b>${event.description}</p>
-                <h3>開始時間</h3>
-                ${startTimes}
-                <h3>終了時間</h3>
-                ${endTimes}
-              </div>
-              <hr/>
-              <div>
-                <p><b>${event.summary}</b> You have a lesson tomorrow.</p>
-              </div>
-              <div>
-                <p><b>Lesson description:</b>${event.description}</p>
-                <h3>Start time</h3>
-                ${startTimes}
-                <h3>End time</h3>
-                ${endTimes}
-              </div>`,
-            },
-          });
+          if (hasStudents) {
+            db.collection("mail").add({
+              to: recipientList,
+              message: {
+                subject: "Success Academy - レッスン・リマインド",
+                html:
+                `<div>
+                  <p><b>${event.summary}</b> 予約したレッスンが明日あります。</p>
+                </div>
+                <div>
+                  <p><b>レッスン説明：</b>${event.description}</p>
+                  <h3>開始時間</h3>
+                  ${startTimes}
+                  <h3>終了時間</h3>
+                  ${endTimes}
+                </div>
+                <hr/>
+                <div>
+                  <p><b>${event.summary}</b> You have a lesson tomorrow.</p>
+                </div>
+                <div>
+                  <p><b>Lesson description:</b>${event.description}</p>
+                  <h3>Start time</h3>
+                  ${startTimes}
+                  <h3>End time</h3>
+                  ${endTimes}
+                </div>`,
+              },
+            });
 
-          const eventData = {
-            calendarId: "primary",
-            eventId: event.id,
-          };
-          return calendarUtils.patchEvent(eventData)
-              .then((data) => data)
-              .catch((err) => {
-                console.error(err);
-                throw new functions.https.HttpsError("internal", err);
-              });
+            const eventData = {
+              calendarId: "primary",
+              eventId: event.id,
+            };
+            calendarUtils.patchEvent(eventData)
+                .then((data) => data)
+                .catch((err) => {
+                  console.error(err);
+                  throw new functions.https.HttpsError("internal", err);
+                });
+          }
         }
       }
     });
