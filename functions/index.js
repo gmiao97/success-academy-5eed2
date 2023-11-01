@@ -369,6 +369,38 @@ exports.send_reminder_emails = functions
 //       });
 //     });
 
+exports.update_subscription = functions
+    .region("us-west2")
+    .runWith({timeoutSeconds: 60, memory: "8GB"})
+    .https
+    .onCall((data, context) => {
+      if (data.deleted) {
+        return stripe.subscriptions.retrieve(data.id).then((subscription) => {
+          const itemId = subscription.items.data.find((item) => item.plan.id === "price_1O5TMrK9gCxRnlEiNLNBBIcf").id;
+          return stripe.subscriptions.update(data.id, {
+            items: [
+              {
+                id: itemId,
+                deleted: true,
+              },
+            ],
+          });
+        }).catch((err) => {
+          throw new functions.https.HttpsError("internal", err);
+        });
+      } else {
+        return stripe.subscriptions.update(data.id, {
+          items: [
+            {
+              price: "price_1O5TMrK9gCxRnlEiNLNBBIcf",
+            },
+          ],
+        }).catch((err) => {
+          throw new functions.https.HttpsError("internal", err);
+        });
+      }
+    });
+
 exports.verifyUser = functions
     .region("us-west2")
     .runWith({timeoutSeconds: 60, memory: "8GB"})
