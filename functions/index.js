@@ -45,10 +45,10 @@ exports.handleStripeWebhookEvents = functions
           const priceList =
             await stripe.prices.list({active: true, type: "one_time"});
           const signupPriceId = priceList.data.find(
-              (price) => price.metadata.id === "initiation").id;
+              (price) => price.lookup_key === "sign_up_fee").id;
           if (signupPriceId === undefined) {
             response.status(500)
-                .send("No price with metadata: 'id: initiation'");
+                .send("No price with lookup_key: sign_up_fee");
           }
           stripe.invoiceItems.create({
             customer: updatedSubscription.customer,
@@ -66,11 +66,11 @@ exports.handleStripeWebhookEvents = functions
 
       if (event.type === "charge.succeeded") {
         const priceList =
-            await stripe.prices.list({active: true, type: "one_time"});
+            await stripe.prices.list({active: true});
         const pointPriceId = priceList.data.find(
-            (price) => price.metadata.id === "point").id;
+            (price) => price.lookup_key === "point_one_time").id;
         if (pointPriceId === undefined) {
-          response.status(500).send("No price with metadata: 'id: point'");
+          response.status(500).send("No price with lookup_key: point_one_time");
         }
         const charge = event.data.object;
         if (charge.metadata.priceId === pointPriceId) {
