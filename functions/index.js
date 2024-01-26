@@ -89,6 +89,24 @@ exports.handleStripeWebhookEvents = functions
         }
       }
 
+      if (event.type === "invoice.paid") {
+        const invoice = event.data.object;
+        const pointPlanItem = invoice.lines.data.find((item) => item.plan.metadata.id.includes("point"));
+        if (pointPlanItem != undefined) {
+          const pointQuantity = pointPlanItem.quantity;
+          console.log("pointQuantity: " + pointQuantity);
+
+          const profileId = invoice.subscription_details.metadata.profile_id;
+          const studentsQuery = await db.collectionGroup("student_profiles").get();
+          const studentProfile = studentsQuery.docs.find((doc) => doc.id === profileId);
+          await studentProfile.ref.update({
+            num_points: studentProfile.get("num_points") + parseInt(pointQuantity),
+          });
+        } else {
+          console.log("No point plan");
+        }
+      }
+
       if (event.type === "customer.subscription.created") {
         const subscription = event.data.object;
         const profileId = subscription.metadata.profile_id;
@@ -376,7 +394,7 @@ exports.update_subscription = functions
     .onCall((data, context) => {
       if (data.deleted) {
         return stripe.subscriptions.retrieve(data.id).then((subscription) => {
-          const itemId = subscription.items.data.find((item) => item.plan.id === "price_1O5TMrK9gCxRnlEiNLNBBIcf").id;
+          const itemId = subscription.items.data.find((item) => item.plan.id === data.priceId).id;
           return stripe.subscriptions.update(data.id, {
             items: [
               {
@@ -392,7 +410,8 @@ exports.update_subscription = functions
         return stripe.subscriptions.update(data.id, {
           items: [
             {
-              price: "price_1O5TMrK9gCxRnlEiNLNBBIcf",
+              price: data.priceId,
+              quantity: data.quantity,
             },
           ],
         }).catch((err) => {
