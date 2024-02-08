@@ -407,13 +407,24 @@ exports.update_subscription = functions
           throw new functions.https.HttpsError("internal", err);
         });
       } else {
-        return stripe.subscriptions.update(data.id, {
-          items: [
-            {
-              price: data.priceId,
-              quantity: data.quantity,
-            },
-          ],
+        const updateItems = [
+          {
+            price: data.priceId,
+            quantity: data.quantity,
+          },
+        ];
+        return stripe.subscriptions.retrieve(data.id).then((subscription) => {
+          const item = subscription.items.data.find((item) => item.plan.id === data.existingPriceId);
+          if (item !== undefined) {
+            updateItems.push({
+              id: item.id,
+              deleted: true,
+            });
+          }
+
+          return stripe.subscriptions.update(data.id, {
+            items: updateItems,
+          });
         }).catch((err) => {
           throw new functions.https.HttpsError("internal", err);
         });
