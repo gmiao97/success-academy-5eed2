@@ -424,6 +424,7 @@ exports.update_subscription = functions
 
           return stripe.subscriptions.update(data.id, {
             items: updateItems,
+            proration_behavior: "always_invoice",
           });
         }).catch((err) => {
           throw new functions.https.HttpsError("internal", err);
