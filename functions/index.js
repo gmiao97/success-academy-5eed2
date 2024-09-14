@@ -445,5 +445,5 @@ exports.updateEmail = functions
     .runWith({timeoutSeconds: 60, memory: "8GB"})
     .https
     .onCall(async (data, context) => {
-      admin.auth().updateUser(data.uid, {email: data.email}).then((userRecord) => console.log("Successfully updated email")).catch((error) => console.log("Failed to update email"));
+      admin.auth().updateUser(data.uid, {email: data.email}).then((userRecord) => console.log("Successfully updated email")).catch((error) => console.log("Failed to update email: " + error));
     });
