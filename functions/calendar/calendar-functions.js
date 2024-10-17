@@ -1,13 +1,27 @@
 const functions = require("firebase-functions/v1");
 const calendarUtils = require("./calendar-utils");
 
+// eslint-disable-next-line max-len
+const testCalendarId = "3313765c4e9242a84e058797b11437b1ab1034a05ba19e1d4885aa9cf0838195@group.calendar.google.com";
+
+/** Returns calendar ID.
+ * @param {boolean} isDev If true, returns calendar ID of test calendar.
+ * @return {String} The calendar ID.
+ */
+function getCalendarId(isDev = false) {
+  if (isDev) {
+    return testCalendarId;
+  }
+  return "primary";
+}
+
 exports.insert_event = functions
     .region("us-west2")
     .runWith({timeoutSeconds: 60, memory: "8GB"})
     .https
     .onCall((data, context) => {
       const eventData = {
-        calendarId: "primary",
+        calendarId: getCalendarId(data.isDev),
         eventType: data.eventType,
         summary: data.summary,
         description: data.description,
@@ -34,7 +48,7 @@ exports.update_event = functions
     .https
     .onCall((data, context) => {
       const eventData = {
-        calendarId: "primary",
+        calendarId: getCalendarId(data.isDev),
         eventId: data.eventId,
         eventType: data.eventType,
         summary: data.summary,
@@ -62,7 +76,7 @@ exports.get_event = functions
     .https
     .onCall((data, context) => {
       const query = {
-        calendarId: "primary",
+        calendarId: getCalendarId(data.isDev),
         eventId: data.eventId,
       };
 
@@ -80,7 +94,7 @@ exports.list_events = functions
     .https
     .onCall((data, context) => {
       const query = {
-        calendarId: "primary",
+        calendarId: getCalendarId(data.isDev),
         timeZone: data.timeZone,
         timeMin: data.timeMin,
         timeMax: data.timeMax,
@@ -101,8 +115,9 @@ exports.delete_event = functions
     .https
     .onCall((data, context) => {
       return calendarUtils.deleteEvent({
-        calendarId: "primary",
-        eventId: data.eventId})
+        calendarId: getCalendarId(data.isDev),
+        eventId: data.eventId,
+      })
           .then((result) => result)
           .catch((err) => {
             console.error(err);
