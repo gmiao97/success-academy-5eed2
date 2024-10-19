@@ -1,3 +1,5 @@
+const admin = require("firebase-admin");
+const db = admin.firestore();
 const functions = require("firebase-functions/v1");
 const calendarUtils = require("./calendar-utils");
 
@@ -13,6 +15,31 @@ function getCalendarId(isDev = false) {
     return testCalendarId;
   }
   return "primary";
+}
+
+/** Maybe refunds points to the list of students in an event.
+ * @param {Array} event The event with points and containing a list of students.
+ */
+async function maybeRefundPoints(event) {
+  const studentIdList = event.extendedProperties.shared.studentIdList;
+  const numPoints = event.extendedProperties.shared.numPoints;
+  if (numPoints == 0 || studentIdList.length == 0) {
+    return;
+  }
+
+  if ("recurrence" in event) {
+    // TODO: Implement point refund for deleted recurrence event.
+  } else {
+    // TODO: The points refund doesn't take into account free lesson discount.
+    const studentsQuery = await db.collectionGroup("student_profiles").get();
+    studentsQuery.docs.filter(
+        (doc) => studentIdList.includes(doc.id))
+        .forEach(async (profile) => {
+          await profile.ref.update({
+            num_points: profile.get("num_points") + parseInt(numPoints),
+          });
+        });
+  }
 }
 
 exports.insert_event = functions
@@ -81,7 +108,6 @@ exports.get_event = functions
       };
 
       return calendarUtils.getEvent(query)
-          .then((result) => result)
           .catch((err) => {
             console.error(err);
             throw new functions.https.HttpsError("internal", err);
@@ -102,7 +128,6 @@ exports.list_events = functions
       };
 
       return calendarUtils.listEvents(query)
-          .then((result) => result)
           .catch((err) => {
             console.error(err);
             throw new functions.https.HttpsError("internal", err);
@@ -114,13 +139,21 @@ exports.delete_event = functions
     .runWith({timeoutSeconds: 60, memory: "8GB"})
     .https
     .onCall((data, context) => {
-      return calendarUtils.deleteEvent({
-        calendarId: getCalendarId(data.isDev),
-        eventId: data.eventId,
-      })
-          .then((result) => result)
-          .catch((err) => {
-            console.error(err);
-            throw new functions.https.HttpsError("internal", err);
-          });
+      const calendarId = getCalendarId(data.isDev);
+
+      return Promise.all([
+        calendarUtils.getEvent({
+          calendarId: calendarId,
+          eventId: data.eventId,
+        }).then(
+            (event) => maybeRefundPoints(event),
+        ),
+        calendarUtils.deleteEvent({
+          calendarId: calendarId,
+          eventId: data.eventId,
+        }),
+      ]).catch((err) => {
+        console.error(err);
+        throw new functions.https.HttpsError("internal", err);
+      });
     });
