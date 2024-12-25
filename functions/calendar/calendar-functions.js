@@ -134,6 +134,26 @@ exports.list_events = functions
           });
     });
 
+exports.list_instances = functions
+    .region("us-west2")
+    .runWith({timeoutSeconds: 60, memory: "8GB"})
+    .https
+    .onCall((data, context) => {
+      const query = {
+        calendarId: getCalendarId(data.isDev),
+        eventId: data.eventId,
+        timeZone: data.timeZone,
+        timeMin: data.timeMin,
+        timeMax: data.timeMax,
+      };
+
+      return calendarUtils.listInstances(query)
+          .catch((err) => {
+            console.error(err);
+            throw new functions.https.HttpsError("internal", err);
+          });
+    });
+
 exports.delete_event = functions
     .region("us-west2")
     .runWith({timeoutSeconds: 60, memory: "8GB"})

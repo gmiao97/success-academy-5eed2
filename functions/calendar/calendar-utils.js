@@ -161,6 +161,37 @@ exports.listEvents = function(query) {
 };
 
 /**
+ * Gets events with start time between {@param timeMin} and {@param timeMax}
+ * @param {Object} query
+ * @return {Promise}
+ */
+exports.listInstances = function(query) {
+  const params = {
+    auth: buildAuth(),
+    calendarId: query.calendarId,
+    eventId: query.eventId,
+    maxResults: 2500,
+    fields: listEventFields,
+  };
+  query.timeZone && (params.timeZone = query.timeZone);
+  query.timeMin && (params.timeMin = query.timeMin);
+  query.timeMax && (params.timeMax = query.timeMax);
+
+  return new Promise((resolve, reject) => {
+    console.log("Sending list instances request to Google Calendar API");
+    calendar.events.instances(params,
+        (err, res) => {
+          if (err) {
+            reject(err);
+          } else {
+            console.log("Received response from Google Calendar API");
+            resolve(res.data.items);
+          }
+        });
+  });
+};
+
+/**
  * @param {Object} event The parameters for event creation.
  * @return {Object} An object representing the event resource
  */
