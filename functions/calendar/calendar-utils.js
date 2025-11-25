@@ -1,13 +1,15 @@
-const {google} = require("googleapis");
+const { google } = require("googleapis");
 const OAuth2 = google.auth.OAuth2;
 const calendar = google.calendar("v3");
 const randomstring = require("randomstring");
 const credentials = require("../credentials.json");
 
-// eslint-disable-next-line max-len
-const listEventFields = "items(id,recurringEventId,summary,description,start,end,recurrence,extendedProperties)";
-// eslint-disable-next-line max-len
-const getEventFields = "id,recurringEventId,summary,description,start,end,recurrence,extendedProperties";
+const listEventFields =
+  // eslint-disable-next-line max-len
+  "items(id,recurringEventId,summary,description,start,end,recurrence,extendedProperties)";
+const getEventFields =
+  // eslint-disable-next-line max-len
+  "id,recurringEventId,summary,description,start,end,recurrence,extendedProperties";
 
 /** Adds a new event
  * @param {Object} event The parameters for event creation.
@@ -16,18 +18,21 @@ const getEventFields = "id,recurringEventId,summary,description,start,end,recurr
  */
 exports.insertEvent = function(event) {
   return new Promise((resolve, reject) => {
-    calendar.events.insert({
-      auth: buildAuth(),
-      calendarId: event.calendarId,
-      conferenceDataVersion: 1,
-      requestBody: buildResource(event),
-    }, (err, res) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(res.data);
+    calendar.events.insert(
+      {
+        auth: buildAuth(),
+        calendarId: event.calendarId,
+        conferenceDataVersion: 1,
+        requestBody: buildResource(event),
+      },
+      (err, res) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(res.data);
+        }
       }
-    });
+    );
   });
 };
 
@@ -38,19 +43,22 @@ exports.insertEvent = function(event) {
  */
 exports.updateEvent = function(event) {
   return new Promise((resolve, reject) => {
-    calendar.events.update({
-      auth: buildAuth(),
-      calendarId: event.calendarId,
-      eventId: event.eventId,
-      conferenceDataVersion: 1,
-      requestBody: buildResource(event),
-    }, (err, res) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(res.data);
+    calendar.events.update(
+      {
+        auth: buildAuth(),
+        calendarId: event.calendarId,
+        eventId: event.eventId,
+        conferenceDataVersion: 1,
+        requestBody: buildResource(event),
+      },
+      (err, res) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(res.data);
+        }
       }
-    });
+    );
   });
 };
 
@@ -61,25 +69,28 @@ exports.updateEvent = function(event) {
  */
 exports.patchEvent = function(event) {
   return new Promise((resolve, reject) => {
-    calendar.events.patch({
-      auth: buildAuth(),
-      calendarId: event.calendarId,
-      eventId: event.eventId,
-      conferenceDataVersion: 1,
-      requestBody: {
-        extendedProperties: {
-          private: {
-            reminderSent: "true",
+    calendar.events.patch(
+      {
+        auth: buildAuth(),
+        calendarId: event.calendarId,
+        eventId: event.eventId,
+        conferenceDataVersion: 1,
+        requestBody: {
+          extendedProperties: {
+            private: {
+              reminderSent: "true",
+            },
           },
         },
       },
-    }, (err, res) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(res.data);
+      (err, res) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(res.data);
+        }
       }
-    });
+    );
   });
 };
 
@@ -90,17 +101,20 @@ exports.patchEvent = function(event) {
  */
 exports.deleteEvent = function(event) {
   return new Promise((resolve, reject) => {
-    calendar.events.delete({
-      auth: buildAuth(),
-      calendarId: event.calendarId,
-      eventId: event.eventId,
-    }, (err, res) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(res.data);
+    calendar.events.delete(
+      {
+        auth: buildAuth(),
+        calendarId: event.calendarId,
+        eventId: event.eventId,
+      },
+      (err, res) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(res.data);
+        }
       }
-    });
+    );
   });
 };
 
@@ -118,14 +132,13 @@ exports.getEvent = function(query) {
   };
 
   return new Promise((resolve, reject) => {
-    calendar.events.get(params,
-        (err, res) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(res.data);
-          }
-        });
+    calendar.events.get(params, (err, res) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(res.data);
+      }
+    });
   });
 };
 
@@ -148,15 +161,14 @@ exports.listEvents = function(query) {
 
   return new Promise((resolve, reject) => {
     console.log("Sending list events request to Google Calendar API");
-    calendar.events.list(params,
-        (err, res) => {
-          if (err) {
-            reject(err);
-          } else {
-            console.log("Received response from Google Calendar API");
-            resolve(res.data.items);
-          }
-        });
+    calendar.events.list(params, (err, res) => {
+      if (err) {
+        reject(err);
+      } else {
+        console.log("Received response from Google Calendar API");
+        resolve(res.data.items);
+      }
+    });
   });
 };
 
@@ -179,15 +191,14 @@ exports.listInstances = function(query) {
 
   return new Promise((resolve, reject) => {
     console.log("Sending list instances request to Google Calendar API");
-    calendar.events.instances(params,
-        (err, res) => {
-          if (err) {
-            reject(err);
-          } else {
-            console.log("Received response from Google Calendar API");
-            resolve(res.data.items);
-          }
-        });
+    calendar.events.instances(params, (err, res) => {
+      if (err) {
+        reject(err);
+      } else {
+        console.log("Received response from Google Calendar API");
+        resolve(res.data.items);
+      }
+    });
   });
 };
 
@@ -215,16 +226,17 @@ function buildResource(event) {
   resource.description = event.description;
   resource.anyoneCanAddSelf = true;
   resource.guestsCanInviteOthers = false;
-  resource.conferenceData = {
-    createRequest: {requestId: randomstring.generate(10)},
-  },
+  (resource.conferenceData = {
+    createRequest: { requestId: randomstring.generate(10) },
+  }),
   event.recurrence && (resource.recurrence = event.recurrence);
 
   event.teacherId &&
     (resource.extendedProperties.shared.teacherId = event.teacherId);
   event.studentIdList &&
-    (resource.extendedProperties.shared.studentIdList =
-      JSON.stringify(event.studentIdList));
+    (resource.extendedProperties.shared.studentIdList = JSON.stringify(
+      event.studentIdList
+    ));
   event.numPoints &&
     (resource.extendedProperties.shared.numPoints = event.numPoints);
 
@@ -236,9 +248,9 @@ function buildResource(event) {
  */
 function buildAuth() {
   const oAuth2Client = new OAuth2(
-      credentials.web.client_id,
-      credentials.web.client_secret,
-      credentials.web.redirect_uris[0],
+    credentials.web.client_id,
+    credentials.web.client_secret,
+    credentials.web.redirect_uris[0]
   );
   oAuth2Client.setCredentials({
     refresh_token: credentials.refresh_token,

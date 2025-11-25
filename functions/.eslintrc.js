@@ -6,9 +6,9 @@ module.exports = {
   },
   extends: ["eslint:recommended", "google"],
   rules: {
-    quotes: ["error", "double"],
-    indent: ["error", 2],
-    "object-curly-spacing": ["error", "as-needed"],
+    "quotes": ["error", "double"],
+    "indent": ["error", 2],
+    "object-curly-spacing": ["error", "always"],
     "comma-dangle": ["error", "only-multiline"],
   },
   parserOptions: {

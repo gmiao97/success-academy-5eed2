@@ -70,13 +70,15 @@ exports.handleStripeWebhookEvents = functions
     }
 
     if (event.type === "charge.succeeded") {
-      const priceList = await stripe.prices.list({ active: true });
-      const pointPriceId = priceList.data.find(
-        (price) => price.lookup_key === "point_one_time"
-      ).id;
-      if (pointPriceId === undefined) {
+      const priceList = await stripe.prices.list({
+        lookup_keys: ["point_one_time"],
+        active: true,
+      });
+      if (priceList.data.length === 0) {
         response.status(500).send("No price with lookup_key: point_one_time");
+        return;
       }
+      const pointPriceId = priceList.data[0].id;
       const charge = event.data.object;
       if (charge.metadata.priceId === pointPriceId) {
         const doc = db
@@ -514,4 +516,17 @@ exports.updateEmail = functions
       .updateUser(data.uid, { email: data.email })
       .then((userRecord) => console.log("Successfully updated email"))
       .catch((error) => console.log("Failed to update email: " + error));
+  });
+
+exports.addIdFieldToStudentProfiles = functions
+  .region("us-west2")
+  .runWith({ timeoutSeconds: 60, memory: "8GB" })
+  .https.onCall(async (data, context) => {
+    const studentProfiles = await db.collectionGroup("student_profiles").get();
+    for (const studentProfile of studentProfiles.docs) {
+      await studentProfile.ref.update({
+        id: studentProfile.id,
+      });
+    }
+    console.log("addIdFieldToStudentProfiles done");
   });
